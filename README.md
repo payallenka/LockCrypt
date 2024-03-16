@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.icons8.com/external-tal-revivo-regular-tal-revivo/96/external-readme-is-a-easy-to-build-a-developer-hub-that-adapts-to-the-user-logo-regular-tal-revivo.png" width="100" />
+  <img src="./logo.png" width="100" />
 </p>
 <p align="center">
     <h1 align="center">LOCKCRYPT</h1>
