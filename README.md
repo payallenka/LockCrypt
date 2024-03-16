@@ -46,6 +46,8 @@
 ##  Overview
 The VaadinFramework project is a web application built using Java, with the frontend developed using the Vaadin framework. It utilizes MySQL and MongoDB databases for storing user data and keys, respectively. The project focuses on password security and employs encryption techniques to ensure sensitive information remains secure.
 
+check out the older version of it at [Password Manager](https://github.com/payallenka/Password-Manager)
+
 ---
 
 ##  Features
