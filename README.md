@@ -19,7 +19,7 @@
 <p align="center">
 	<img src="https://img.shields.io/badge/Java-%23ED8B00.svg?style=flat&logo=java&logoColor=white" alt="Java">
 	<img src="https://img.shields.io/badge/MongoDB-47A248.svg?style=flat&logo=MongoDB&logoColor=white" alt="MongoDB">
-	<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat&logo=Python&logoColor=white" alt="Python">
+<!-- 	<img src="https://img.shields.io/badge/Python-3776AB.svg?style=flat&logo=Python&logoColor=white" alt="Python"> -->
 	<img src="https://img.shields.io/badge/Spring Boot-6DB33F.svg?style=flat&logo=Spring Boot&logoColor=white" alt="Spring Boot">
 	<img src="https://img.shields.io/badge/Encryption-009688.svg?style=flat&logoColor=white" alt="Encryption">
 	<img src="https://img.shields.io/badge/Vaadin-00B4F0.svg?style=flat&logo=Vaadin&logoColor=white" alt="Vaadin">
