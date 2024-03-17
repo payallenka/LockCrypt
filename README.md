@@ -253,10 +253,19 @@ npm run build && node dist/main.js
 To execute tests, run:
 
 ```sh
-npm test
+npm test   (optional - most of the microservices are self-sufficient)
 ```
+## Project guide
+> -  Install Intellij IDEA (specified version recommended).
+> -  Clone the repository.
+> -  Run the SpringBoot application of the 'serviceRegister' (It will start the Eureka Server).
+> -  Run the SpringBoot application of the all the other microservices. (In seperate windows)
+> -  Caution: Do not shut /close/stop the 'serviceRegister' as it is the Eureka Server.
+> -  On successfull run navigate to localhost:7000 (cross check the logs for the correct port number).
+> -  Enjoy the flow 💯
 
 
+### Any persistent Issue feel free to reach out - would love to resolve the issue
 ---
 
 ##  Contributing
