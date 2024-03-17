@@ -35,6 +35,7 @@
 > - [Architecture](#-Architecture)
 > - [ Repository Structure](#-repository-structure)
 > - [ Getting Started](#-getting-started)
+> - [Project Guide](#-project-guide)
 > - [ Installation](#-installation)
 > - [ Running LockCrypt](#-running-LockCrypt)
 > - [ Contributing](#-contributing)
