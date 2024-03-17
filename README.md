@@ -250,10 +250,10 @@ npm run build && node dist/main.js
 
 ###  Tests
 
-To execute tests, run:
+To execute tests, run: (optional - most of the microservices are self-sufficient)
 
 ```sh
-npm test   (optional - most of the microservices are self-sufficient)
+npm test   
 ```
 ## Project guide
 > -  Install Intellij IDEA (specified version recommended).
