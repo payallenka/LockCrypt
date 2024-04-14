@@ -212,7 +212,7 @@ By separating user data storage (MongoDB) from encryption keys storage (MySQL), 
 
 ## Architecture
 <p align="center">
-  <img src="./projimage.png" width="100" />
+  <img src="./projimage.png" />
 </p>
 
 <p align="center">
