@@ -210,7 +210,14 @@ By separating user data storage (MongoDB) from encryption keys storage (MySQL), 
 ---
 
 
+## Architecture
+<p align="center">
+  <img src="./projimage.png" width="100" />
+</p>
 
+<p align="center">
+    <h1 align="center">Microservices Diagram</h1>
+</p>
 ##  Getting Started
 
 ***Requirements***
@@ -234,15 +241,12 @@ git clone https://github.com/payallenka/LockCrypt
 cd LockCrypt
 ```
 
-3. Install the dependencies:
+3. open all the individual folders as a seperate intellijIDEA project
 
-```sh
-npm install
-```
 
 ###  Running LockCrypt
 
-Use the following command to run LockCrypt:
+run the server 
 
 ```sh
 npm run build && node dist/main.js
