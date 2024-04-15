@@ -342,6 +342,19 @@ On sucessful run you'll see something like in the image below.
 <p align="center">
     <h1 align="center">Password View page</h1>
 </p>
+
+</p>
+  <img src="./MongoDBServer.png" />
+</p>
+<p align="center">MongoDB Compass View</h1>
+</p>
+
+</p>
+  <img src="./MysqlDbImage.png" />
+</p>
+<p align="center">
+    <h1 align="center">MySQL Shell View</h1>
+</p>
 - Enjoy the flow! 💯
 
 
