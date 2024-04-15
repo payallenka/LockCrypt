@@ -243,30 +243,93 @@ cd LockCrypt
 
 3. open all the individual folders as a seperate intellijIDEA project
 
+## Project Guide
 
-###  Running LockCrypt
+### Installing Intellij IDEA
+- Install Intellij IDEA, with the specified version recommended for this project.
 
-run the server 
+### Cloning the Repository
+- Clone the repository to your local machine.
 
-```sh
-npm run build && node dist/main.js
+### Setting Up MongoDB Atlas with MongoDB Compass
+
+To connect to MongoDB Atlas using MongoDB Compass, follow these steps:
+
+1. **Open MongoDB Atlas Dashboard:** Go to the MongoDB Atlas website [here](https://www.mongodb.com/cloud/atlas) and log in to your account.
+
+2. **Select Your Cluster:** From the Atlas dashboard, select the cluster you want to connect to. If you haven't created a cluster yet, follow the instructions to create one.
+
+3. **Click on "Connect":** In the cluster view, click on the "Connect" button.
+
+4. **Choose Connection Method:** Select "Connect with MongoDB Compass" option.
+
+5. **Copy Connection String:** MongoDB Atlas will provide you with a connection string. Click on the "Copy" button next to the connection string to copy it to your clipboard.
+
+6. **Open MongoDB Compass:** If you haven't installed MongoDB Compass yet, download and install it from the official MongoDB website [here](https://www.mongodb.com/try/download/compass).
+
+7. **Launch MongoDB Compass:** Open MongoDB Compass after installation.
+
+8. **Connect to Cluster:** In MongoDB Compass, click on the "Connect" button to open the connection dialog.
+
+9. **Paste Connection String:** In the connection dialog, paste the connection string you copied from MongoDB Atlas. If prompted, enter your MongoDB Atlas username and password.
+
+10. **Configure Connection Options (Optional):** You can configure additional connection options such as SSH tunneling, SSL, etc., as per your requirements.
+
+11. **Test Connection:** Click on the "Connect" button to test the connection to the MongoDB Atlas cluster.
+
+12. **Verify Connection:** Once connected, MongoDB Compass will display a list of databases and collections available in your MongoDB Atlas cluster.
+
+13. **Perform Operations:** You can now perform various database operations such as querying data, inserting documents, managing indexes, etc., using MongoDB Compass.
+
+14. **Disconnect:** When you're done working with the cluster, you can disconnect from MongoDB Atlas by closing MongoDB Compass or clicking on the "Disconnect" button in MongoDB Compass.
+
+### Setting Up MySQL Database
+
+To set up MySQL on your local system and create a database to match the given JDBC URL, follow these steps:
+
+1. **Install MySQL Server:** Download and install MySQL Server from the official MySQL website. SET THE PASSWORD AS 'root@123' otherwise kinldy edit the application.properties of the VaadinFramework and the MySQLHandle with your defined password.
+
+2. **Start MySQL Server:** Start the MySQL Server service on your local system. 
+
+3. **Access MySQL Shell:** Access the MySQL shell using the MySQL command-line client or any MySQL GUI tool.
+
+4. **Create Database:** Create a new database named `MonolithModelPasswordManager` using the following SQL command:
+   ```sql
+   CREATE DATABASE MonolithModelPasswordManager;
+5. **Creating a Table in MySQL** 
+
+Create a table in MySQL with an auto-increment primary key and the provided fields, you can use the following SQL command:
+
+```sql
+CREATE TABLE password (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    password_key VARCHAR(255)
+);
+
 ```
 
-###  Tests
 
-To execute tests, run: (optional - most of the microservices are self-sufficient)
+### Running Microservices
+- Run the SpringBoot application of the 'serviceRegister' (It will start the Eureka Server).
+On sucessful run you'll see something like in the image below.
+<p align="center">
+    <h1 align="center">Microservices Diagram</h1>
+</p>
+- Run the SpringBoot application of all the other microservices in separate windows of IntellijIDEA.
+On sucessful run you'll see something like in the image below.
+<p align="center">
+    <h1 align="center">Microservices Diagram</h1>
+</p>
+- Caution: Do not shut/close/stop the 'serviceRegister' as it is the Eureka Server and all the microservices will register there.
+- On successful run navigate to localhost:7000 (cross check the logs for the correct port number).
+On sucessful run you'll see something like in the image below.
+<p align="center">
+    <h1 align="center">Microservices Diagram</h1>
+</p>
+- Enjoy the flow! 💯
 
-```sh
-npm test   
-```
-## Project guide
-> -  Install Intellij IDEA (specified version recommended).
-> -  Clone the repository.
-> -  Run the SpringBoot application of the 'serviceRegister' (It will start the Eureka Server).
-> -  Run the SpringBoot application of the all the other microservices. (In seperate windows)
-> -  Caution: Do not shut /close/stop the 'serviceRegister' as it is the Eureka Server.
-> -  On successfull run navigate to localhost:7000 (cross check the logs for the correct port number).
-> -  Enjoy the flow 💯
+
+
 
 
 ### Any persistent Issue feel free to reach out - would love to resolve the issue
@@ -280,8 +343,6 @@ Contributions are welcome! Here are several ways you can contribute:
 - **[Join the Discussions](https://github.com/payallenka/LockCrypt/discussions)**: Share your insights, provide feedback, or ask questions.
 - **[Report Issues](https://github.com/payallenka/LockCrypt/issues)**: Submit bugs found or log feature requests for Lockcrypt.
 
-<details closed>
-    <summary>Contributing Guidelines</summary>
 
 1. **Fork the Repository**: Start by forking the project repository to your GitHub account.
 2. **Clone Locally**: Clone the forked repository to your local machine using a Git client.
