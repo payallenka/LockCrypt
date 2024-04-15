@@ -26,22 +26,7 @@
 </p>
 <hr>
 
-##  Quick Links
 
-> - [ Overview](#-overview)
-> - [ Features](#-features)
-> - [Technologies used](#-Technologies-Used)
-> - [Architecture](#-Architecture)
-> - [ Repository Structure](#-repository-structure)
-> - [ Getting Started](#-getting-started)
-> - [Project Guide](#-project-guide)
-> - [ Installation](#-installation)
-> - [ Running LockCrypt](#-running-LockCrypt)
-> - [ Contributing](#-contributing)
-> - [ License](#-license)
-> - [ Acknowledgments](#-acknowledgments)
-
----
 
 ##  Overview
 The VaadinFramework project is a web application built using Java, with the frontend developed using the Vaadin framework. It utilizes MySQL and MongoDB databases for storing user data and keys, respectively. The project focuses on password security and employs encryption techniques to ensure sensitive information remains secure.
@@ -313,18 +298,49 @@ CREATE TABLE password (
 - Run the SpringBoot application of the 'serviceRegister' (It will start the Eureka Server).
 On sucessful run you'll see something like in the image below.
 <p align="center">
-    <h1 align="center">Microservices Diagram</h1>
+  <img src="./serverImage.png" />
+</p>
+<p align="center">
+    <h1 align="center">Server Successfully built! </h1>
 </p>
 - Run the SpringBoot application of all the other microservices in separate windows of IntellijIDEA.
 On sucessful run you'll see something like in the image below.
 <p align="center">
-    <h1 align="center">Microservices Diagram</h1>
+  <img src="./vaadinImage.png" />
+<p align="center">
+    <h1 align="center">FrontEnd - Vaadin Successful buid</h1>
+</p>
+  <img src="./mysqlImage.png" />
+  <p align="center">
+    <h1 align="center">MySQL service Successful buid</h1>
+</p>
+  <img src="./mongoImage.png" />
+</p>
+
+<p align="center">
+    <h1 align="center">MongoDB service Successful buid</h1>
 </p>
 - Caution: Do not shut/close/stop the 'serviceRegister' as it is the Eureka Server and all the microservices will register there.
 - On successful run navigate to localhost:7000 (cross check the logs for the correct port number).
 On sucessful run you'll see something like in the image below.
+</p>
+  <img src="./landingPage.png" />
+</p>
 <p align="center">
-    <h1 align="center">Microservices Diagram</h1>
+    <h1 align="center">Landing page</h1>
+</p>
+
+</p>
+  <img src="./createPasswordImage.png" />
+</p>
+<p align="center">
+    <h1 align="center">Password Creation page</h1>
+</p>
+</p>
+  <img src="./ViewPasswordImage.png" />
+</p>
+<p align="center">
+    <h1 align="center">Password View page</h1>
 </p>
 - Enjoy the flow! 💯
 
