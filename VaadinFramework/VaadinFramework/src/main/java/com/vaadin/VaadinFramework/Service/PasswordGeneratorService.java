@@ -40,12 +40,12 @@ public class PasswordGeneratorService {
             case 3: // Special characters
                 Hashtable<Integer, Character> specialChar = new Hashtable<>();
                 specialChar.put(1,'@');
-                specialChar.put(2,'#');
-                specialChar.put(3,'%');
-                specialChar.put(4,'&');
-                specialChar.put(5,'*');
-                specialChar.put(6,'!');
-                Integer randChar = random.nextInt(6)+1;
+
+
+
+                specialChar.put(2,'*');
+                specialChar.put(3,'!');
+                Integer randChar = random.nextInt(3)+1;
 
 
                 return (specialChar.get(randChar));
