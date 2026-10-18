@@ -1,0 +1,88 @@
+# Runs the whole of LockCrypt: docker compose up --build
+# Only the UI (7000) and the Eureka dashboard (8761) are published,
+# the storage services are reachable only inside the compose network.
+
+x-service-env: &service-env
+  EUREKA_URL: http://service-register:8761/eureka
+  INTERNAL_TOKEN: ${INTERNAL_TOKEN:?set INTERNAL_TOKEN in .env}
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:?set MYSQL_PASSWORD in .env}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      retries: 20
+
+  mongo:
+    image: mongo:7.0
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      retries: 20
+
+  service-register:
+    build:
+      context: .
+      args:
+        MODULE: serviceRegister
+    ports:
+      - "8761:8761"
+
+  mongodb-database:
+    build:
+      context: .
+      args:
+        MODULE: MongoDBDatabase
+    environment:
+      <<: *service-env
+      MONGODB_URI: ${MONGODB_URI:-mongodb://mongo:27017/LockCrypt}
+    depends_on:
+      mongo:
+        condition: service_healthy
+      service-register:
+        condition: service_started
+
+  mysql-handle:
+    build:
+      context: .
+      args:
+        MODULE: MySQLHandle
+    environment:
+      <<: *service-env
+      MYSQL_URL: jdbc:mysql://mysql:3306/MonolithModelPasswordManager?createDatabaseIfNotExist=true
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      service-register:
+        condition: service_started
+
+  vaadin-framework:
+    build:
+      context: .
+      args:
+        MODULE: VaadinFramework
+    environment:
+      <<: *service-env
+      MYSQL_URL: jdbc:mysql://mysql:3306/LockCryptUsers?createDatabaseIfNotExist=true
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "7000:7000"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mongodb-database:
+        condition: service_started
+      mysql-handle:
+        condition: service_started
+
+volumes:
+  mysql-data:
+  mongo-data:

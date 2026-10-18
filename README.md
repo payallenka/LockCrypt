@@ -1,413 +1,237 @@
 <p align="center">
-  <img src="./logo.png" width="100" />
+  <img src="./docs/images/logo.png" width="100" />
 </p>
 <p align="center">
     <h1 align="center">LOCKCRYPT</h1>
 </p>
 <p align="center">
-    <em>Password Security Solution`</em>
+    <em>Password Security Solution</em>
 </p>
 <p align="center">
 	<img src="https://img.shields.io/github/license/payallenka/LockCrypt?style=flat&color=0080ff" alt="license">
 	<img src="https://img.shields.io/github/last-commit/payallenka/LockCrypt?style=flat&logo=git&logoColor=white&color=0080ff" alt="last-commit">
 	<img src="https://img.shields.io/github/languages/top/payallenka/LockCrypt?style=flat&color=0080ff" alt="repo-top-language">
-	<img src="https://img.shields.io/github/languages/count/payallenka/LockCrypt?style=flat&color=0080ff" alt="repo-language-count">
-<p>
-<p align="center">
-		<em>Developed with the software and tools below.</em>
+	<img src="https://github.com/payallenka/LockCrypt/actions/workflows/build.yml/badge.svg" alt="build">
 </p>
 <p align="center">
-	<img src="https://img.shields.io/badge/Java-%23ED8B00.svg?style=flat&logo=java&logoColor=white" alt="Java">
+	<img src="https://img.shields.io/badge/Java_17-%23ED8B00.svg?style=flat&logo=openjdk&logoColor=white" alt="Java">
+	<img src="https://img.shields.io/badge/Spring_Boot_3-6DB33F.svg?style=flat&logo=springboot&logoColor=white" alt="Spring Boot">
+	<img src="https://img.shields.io/badge/Spring_Cloud_Eureka-6DB33F.svg?style=flat&logo=spring&logoColor=white" alt="Eureka">
 	<img src="https://img.shields.io/badge/MongoDB-47A248.svg?style=flat&logo=MongoDB&logoColor=white" alt="MongoDB">
 	<img src="https://img.shields.io/badge/MySQL-4479A1.svg?style=flat&logo=MySQL&logoColor=white" alt="MySQL">
-	<img src="https://img.shields.io/badge/Spring Boot-6DB33F.svg?style=flat&logo=Spring Boot&logoColor=white" alt="Spring Boot">
-	<img src="https://img.shields.io/badge/Encryption-009688.svg?style=flat&logoColor=white" alt="Encryption">
 	<img src="https://img.shields.io/badge/Vaadin-00B4F0.svg?style=flat&logo=Vaadin&logoColor=white" alt="Vaadin">
+	<img src="https://img.shields.io/badge/Docker-2496ED.svg?style=flat&logo=docker&logoColor=white" alt="Docker">
 </p>
 <hr>
 
+## Overview
 
+LockCrypt is a password manager built as a set of Spring Boot microservices that find each other through a Eureka service registry.
 
-##  Overview
-The VaadinFramework project is a web application built using Java, with the frontend developed using the Vaadin framework. It utilizes MySQL and MongoDB databases for storing user data and keys, respectively. The project focuses on password security and employs encryption techniques to ensure sensitive information remains secure.
+The main idea is **split storage**: every saved password is encrypted with its own AES-256 key, the encrypted password is stored in **MongoDB** and the key is stored in **MySQL**, each behind its own service. Someone who gets hold of only one of the two databases cannot recover any password.
 
 check out the older version of it at [Password Manager](https://github.com/payallenka/Password-Manager)
 
 ---
 
-##  Features
+## Features
 
-### 1. User Authentication and Data Management:
-
-Users can register and log in to the application.
-Once logged in, users can manage their passwords securely.
-User details and encrypted passwords are stored in a MongoDB database.
-
-
-### 2.  Encryption and Decryption:
-
-Original passwords are never stored in the database.
-Passwords are encrypted before being stored in the database using encryption keys.
-The encryption keys are stored locally on the MySQL database.
-
-
-### 3. Frontend Development with Vaadin:
-
-The frontend of the application is built using the Vaadin framework, which allows for the creation of modern web applications using Java.
-Vaadin simplifies the development process by providing a set of UI components and handling communication between the frontend and backend seamlessly.
-
-
-### 4. Scalability and Modifiability:
-
-The architecture of the application is designed to be scalable and open for further modifications.
-By separating user data storage (MongoDB) from encryption keys storage (MySQL), the application can easily adapt to changes and accommodate additional features in the future.
+- **Register and log in** – Spring Security with BCrypt-hashed login passwords; every page except login/register needs an authenticated user.
+- **Per-user data** – every record and key carries its owner, and both storage services only return or delete data for that owner.
+- **Create a password** – type your own or let LockCrypt generate a strong one (20 characters, `SecureRandom`, always contains lowercase, uppercase, numbers and special characters).
+- **View and delete passwords** – passwords are decrypted for the logged-in user and shown hidden by default with a reveal button.
+- **AES-256-GCM encryption** – a fresh key and IV for every password; GCM also detects tampered data.
+- **Service discovery** – services register with Eureka and are called by name (`http://MongoDBDatabase`, `http://MySQLHandle`) through a `@LoadBalanced` `RestTemplate`, so no host or port is hardcoded.
+- **Service-to-service auth** – the storage services reject any request that does not carry the shared `X-Internal-Token`.
+- **One command to run everything** – Docker Compose starts MySQL, MongoDB, Eureka and all services.
 
 ---
 
-## Technologies Used: 
->- Java: Core programming language used for backend development.  
->- Vaadin Framework: Used for building the frontend of the web application.  
->- MySQL: Relational database management system used for storing encryption keys.   
->- MongoDB: NoSQL database used for storing user details and encrypted passwords.  
->- Encryption Algorithms: Used to encrypt and decrypt passwords securely.  
->- Spring Boot: Provides a robust framework for building and running Java-based applications.  
+## Architecture
+
+```mermaid
+flowchart LR
+    user([Browser]) -->|login, UI| vaadin
+
+    subgraph LockCrypt
+        registry[serviceRegister<br/>Eureka :8761]
+        vaadin[VaadinFramework :7000<br/>UI, login, AES encryption]
+        mongoSvc[MongoDBDatabase :8000<br/>encrypted passwords]
+        mysqlSvc[MySQLHandle :7500<br/>encryption keys]
+    end
+
+    vaadin -. register / discover .-> registry
+    mongoSvc -. register .-> registry
+    mysqlSvc -. register .-> registry
+
+    vaadin -->|REST + X-Internal-Token| mongoSvc
+    vaadin -->|REST + X-Internal-Token| mysqlSvc
+    vaadin --> usersDb[(MySQL<br/>LockCryptUsers)]
+    mongoSvc --> mongo[(MongoDB<br/>userData)]
+    mysqlSvc --> keysDb[(MySQL<br/>MonolithModelPasswordManager)]
+```
+
+| Service | Port | Responsibility |
+|---|---|---|
+| `serviceRegister` | 8761 | Eureka server, every other service registers here |
+| `VaadinFramework` | 7000 | Vaadin UI, login/registration, password generation, encryption and decryption |
+| `MongoDBDatabase` | 8000 | Stores account, username and **encrypted** password, plus the id of its key |
+| `MySQLHandle` | 7500 | Stores the **keys** |
+
+### Saving a password
+
+1. `VaadinFramework` generates a random 256-bit key and sends it to `MySQLHandle`, which returns the key's id.
+2. The password is encrypted with that key (AES-GCM, random IV stored in front of the ciphertext).
+3. The encrypted password, account, username and key id are sent to `MongoDBDatabase`.
+4. If step 3 fails, the key from step 1 is deleted again so the two stores stay in sync.
+
+### Viewing passwords
+
+`VaadinFramework` fetches the user's records and keys, matches each record to its key **by key id** and decrypts it.
+
+### REST API
+
+Both storage services require the `X-Internal-Token` header.
+
+| Service | Method | Path | Description |
+|---|---|---|---|
+| MongoDBDatabase | `GET` | `/userData?owner={owner}` | All records of a user |
+| MongoDBDatabase | `POST` | `/userData` | Save a record (validated), returns `201` |
+| MongoDBDatabase | `DELETE` | `/userData/{id}?owner={owner}` | Delete a record, `404` if it is not the owner's |
+| MySQLHandle | `GET` | `/keys?owner={owner}` | All keys of a user |
+| MySQLHandle | `POST` | `/keys` | Save a key (validated), returns `201` with its id |
+| MySQLHandle | `DELETE` | `/keys/{id}?owner={owner}` | Delete a key, `404` if it is not the owner's |
 
 ---
 
-## Architecture:
->- Frontend: Developed using Vaadin framework, allowing for the creation of responsive and interactive user interfaces.  
->- Backend: Built using Java with Spring Boot, providing a scalable and maintainable backend infrastructure.  
->- Database Layer: Utilizes MySQL for storing encryption keys and MongoDB for storing user details and encrypted passwords.    
->- Security: Implements encryption techniques to ensure the security of user passwords and sensitive information.  
-
----
-
-##  Repository Structure
+## Repository Structure
 
 ```sh
-└── LockCrypt/
-    ├── MongoDBDatabase
-    │   ├── .idea
-    │   │   ├── .gitignore
-    │   │   ├── MongoDBDatabase.iml
-    │   │   ├── compiler.xml
-    │   │   ├── encodings.xml
-    │   │   ├── jarRepositories.xml
-    │   │   ├── misc.xml
-    │   │   ├── modules.xml
-    │   │   └── uiDesigner.xml
-    │   └── MongoDBDatabase
-    │       ├── .gitignore
-    │       ├── .mvn
-    │       │   └── wrapper
-    │       │       ├── maven-wrapper.jar
-    │       │       └── maven-wrapper.properties
-    │       ├── mvnw
-    │       ├── mvnw.cmd
-    │       ├── pom.xml
-    │       └── src
-    │           ├── main
-    │           │   ├── java
-    │           │   └── resources
-    │           └── test
-    │               └── java
-    ├── MySQLHandle
-    │   ├── .idea
-    │   │   ├── .gitignore
-    │   │   ├── MySQLHandle.iml
-    │   │   ├── compiler.xml
-    │   │   ├── encodings.xml
-    │   │   ├── jarRepositories.xml
-    │   │   ├── misc.xml
-    │   │   └── modules.xml
-    │   └── MySQLHandle
-    │       ├── .gitignore
-    │       ├── .mvn
-    │       │   └── wrapper
-    │       │       ├── maven-wrapper.jar
-    │       │       └── maven-wrapper.properties
-    │       ├── frontend
-    │       │   ├── generated
-    │       │   │   ├── flow
-    │       │   │   ├── jar-resources
-    │       │   │   ├── vaadin-featureflags.js
-    │       │   │   └── vaadin.ts
-    │       │   └── index.html
-    │       ├── mvnw
-    │       ├── mvnw.cmd
-    │       ├── pom.xml
-    │       └── src
-    │           ├── main
-    │           │   ├── java
-    │           │   └── resources
-    │           └── test
-    │               └── java
-    ├── README.md
-    ├── VaadinFramework
-    │   ├── .idea
-    │   │   ├── .gitignore
-    │   │   ├── VaadinFramework.iml
-    │   │   ├── compiler.xml
-    │   │   ├── encodings.xml
-    │   │   ├── jarRepositories.xml
-    │   │   ├── misc.xml
-    │   │   └── modules.xml
-    │   └── VaadinFramework
-    │       ├── .gitignore
-    │       ├── .mvn
-    │       │   └── wrapper
-    │       │       ├── maven-wrapper.jar
-    │       │       └── maven-wrapper.properties
-    │       ├── frontend
-    │       │   ├── generated
-    │       │   │   ├── flow
-    │       │   │   ├── jar-resources
-    │       │   │   ├── vaadin-featureflags.js
-    │       │   │   └── vaadin.ts
-    │       │   └── index.html
-    │       ├── mvnw
-    │       ├── mvnw.cmd
-    │       ├── pom.xml
-    │       └── src
-    │           ├── main
-    │           │   ├── java
-    │           │   └── resources
-    │           └── test
-    │               └── java
-    └── serviceRegister
-        └── serviceRegister
-            ├── .gitignore
-            ├── .mvn
-            │   └── wrapper
-            │       ├── maven-wrapper.jar
-            │       └── maven-wrapper.properties
-            ├── mvnw
-            ├── mvnw.cmd
-            ├── pom.xml
-            └── src
-                ├── main
-                │   ├── java
-                │   └── resources
-                └── test
-                    └── java
+LockCrypt/
+├── pom.xml                  # parent pom: versions and the four modules
+├── docker-compose.yml       # MySQL, MongoDB and all services
+├── Dockerfile               # builds any module: --build-arg MODULE=<name>
+├── .env.example             # copy to .env
+├── serviceRegister/         # Eureka server
+├── MongoDBDatabase/
+│   └── src/main/java/com/lockcrypt/mongodbdatabase/
+│       ├── configuration/   # InternalTokenFilter
+│       ├── controller/      # UserDataController, ApiExceptionHandler
+│       ├── model/           # UserData, UserDataRequest
+│       ├── repository/      # UserRepository
+│       └── service/         # UserDataService
+├── MySQLHandle/
+│   └── src/main/java/com/lockcrypt/mysqlhandle/
+│       ├── configuration/   # InternalTokenFilter
+│       ├── controller/      # PasswordController, ApiExceptionHandler
+│       ├── model/           # Password, PasswordKeyRequest
+│       ├── repository/      # PasswordKeyRepo
+│       └── service/         # PasswordKeyService
+└── VaadinFramework/
+    └── src/main/java/com/lockcrypt/vaadinframework/
+        ├── configuration/   # RestTemplateConfig (@LoadBalanced), SecurityConfig
+        ├── frontend/        # MainView, DataReceive, DataDisplay, LoginView, RegisterView
+        ├── model/           # UserData, KeysDetails, PasswordEntry, AppUser
+        ├── repository/      # AppUserRepository
+        └── service/         # MaskingService, PasswordGeneratorService, PasswordManagerService,
+                             # UserDataService, KeysService, AppUserService
 ```
 
 ---
 
+## Getting Started
 
-## Architecture
-<p align="center">
-  <img src="./projimage.png" />
-</p>
+### Run with Docker (recommended)
 
-<p align="center">
-    <h1 align="center">Microservices Diagram</h1>
-</p>
-##  Getting Started
-
-***Requirements***
-
-Ensure you have the following dependencies installed on your system:
-
-* **Intellij IDEA**: `version 2023.1.6`
-* **MySQL**: `version latest version` - set the username as roo (default) and password as root@123 ensure to create a database names monolithmodelpasswordmanager (recommended)
-
-###  Installation
-
-1. Clone the LockCrypt repository:
+Requirements: Docker with Compose.
 
 ```sh
 git clone https://github.com/payallenka/LockCrypt
+cd LockCrypt
+cp .env.example .env        # then set MYSQL_PASSWORD and INTERNAL_TOKEN
+docker compose up --build
 ```
 
-2. Change to the project directory:
+- App: http://localhost:7000 – create an account on the register page, then log in.
+- Eureka dashboard: http://localhost:8761 – `MONGODBDATABASE`, `MYSQLHANDLE` and `VAADINFRAMEWORK` should be listed.
+
+Give the services ~30 seconds after startup to register with Eureka. Only ports 7000 and 8761 are published; the storage services are reachable only inside the Docker network.
+
+To use MongoDB Atlas instead of the local container, set `MONGODB_URI` in `.env`.
+
+### Run locally without Docker
+
+Requirements: JDK 17, a running MySQL 8 and MongoDB.
 
 ```sh
-cd LockCrypt
+export MYSQL_PASSWORD=<your mysql root password>
+export INTERNAL_TOKEN=<any long random string>
+# optional: export MONGODB_URI=mongodb+srv://...
+
+./mvnw -pl serviceRegister spring-boot:run     # start this first
+./mvnw -pl MongoDBDatabase spring-boot:run
+./mvnw -pl MySQLHandle spring-boot:run
+./mvnw -pl VaadinFramework spring-boot:run
 ```
 
-3. open all the individual folders as a seperate intellijIDEA project
+The databases are created automatically (`createDatabaseIfNotExist=true`, `ddl-auto=update`).
 
-## Project Guide
+### Configuration
 
-### Installing Intellij IDEA
-- Install Intellij IDEA, with the specified version recommended for this project.
+| Variable | Used by | Default |
+|---|---|---|
+| `INTERNAL_TOKEN` | all except `serviceRegister` | – (required) |
+| `MYSQL_PASSWORD` | `MySQLHandle`, `VaadinFramework` | – (required) |
+| `MYSQL_USERNAME` | `MySQLHandle`, `VaadinFramework` | `root` |
+| `MYSQL_URL` | `MySQLHandle`, `VaadinFramework` | `localhost:3306` |
+| `MONGODB_URI` | `MongoDBDatabase` | `mongodb://localhost:27017/LockCrypt` |
+| `EUREKA_URL` | all clients | `http://localhost:8761/eureka` |
 
-### Cloning the Repository
-- Clone the repository to your local machine.
+### Tests
 
-### Setting Up MongoDB Atlas with MongoDB Compass
-
-To connect to MongoDB Atlas using MongoDB Compass, follow these steps:
-
-1. **Open MongoDB Atlas Dashboard:** Go to the MongoDB Atlas website [here](https://www.mongodb.com/cloud/atlas) and log in to your account.
-
-2. **Select Your Cluster:** From the Atlas dashboard, select the cluster you want to connect to. If you haven't created a cluster yet, follow the instructions to create one.
-
-3. **Click on "Connect":** In the cluster view, click on the "Connect" button.
-
-4. **Choose Connection Method:** Select "Connect with MongoDB Compass" option.
-
-5. **Copy Connection String:** MongoDB Atlas will provide you with a connection string. Click on the "Copy" button next to the connection string to copy it to your clipboard.
-
-6. **Open MongoDB Compass:** If you haven't installed MongoDB Compass yet, download and install it from the official MongoDB website [here](https://www.mongodb.com/try/download/compass).
-
-7. **Launch MongoDB Compass:** Open MongoDB Compass after installation.
-
-8. **Connect to Cluster:** In MongoDB Compass, click on the "Connect" button to open the connection dialog.
-
-9. **Paste Connection String:** In the connection dialog, paste the connection string you copied from MongoDB Atlas. If prompted, enter your MongoDB Atlas username and password.
-
-10. **Configure Connection Options (Optional):** You can configure additional connection options such as SSH tunneling, SSL, etc., as per your requirements.
-
-11. **Test Connection:** Click on the "Connect" button to test the connection to the MongoDB Atlas cluster.
-
-12. **Verify Connection:** Once connected, MongoDB Compass will display a list of databases and collections available in your MongoDB Atlas cluster.
-
-13. **Perform Operations:** You can now perform various database operations such as querying data, inserting documents, managing indexes, etc., using MongoDB Compass.
-
-14. **Disconnect:** When you're done working with the cluster, you can disconnect from MongoDB Atlas by closing MongoDB Compass or clicking on the "Disconnect" button in MongoDB Compass.
-
-### Setting Up MySQL Database
-
-To set up MySQL on your local system and create a database to match the given JDBC URL, follow these steps:
-
-1. **Install MySQL Server:** Download and install MySQL Server from the official MySQL website. SET THE PASSWORD AS 'root@123' otherwise kinldy edit the application.properties of the VaadinFramework and the MySQLHandle with your defined password.
-
-2. **Start MySQL Server:** Start the MySQL Server service on your local system. 
-
-3. **Access MySQL Shell:** Access the MySQL shell using the MySQL command-line client or any MySQL GUI tool.
-
-4. **Create Database:** Create a new database named `MonolithModelPasswordManager` using the following SQL command:
-   ```sql
-   CREATE DATABASE MonolithModelPasswordManager;
-5. **Creating a Table in MySQL** 
-
-Create a table in MySQL with an auto-increment primary key and the provided fields, you can use the following SQL command:
-
-```sql
-CREATE TABLE password (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    password_key VARCHAR(255)
-);
-
+```sh
+./mvnw verify
 ```
 
+79 tests across the four modules, covering:
 
-### Running Microservices
-- Run the SpringBoot application of the 'serviceRegister' (It will start the Eureka Server).
-On sucessful run you'll see something like in the image below.
-<p align="center">
-  <img src="./serverImage.png" />
-</p>
-<p align="center">
-    <h1 align="center">Server Successfully built! </h1>
-</p>
-- Run the SpringBoot application of all the other microservices in separate windows of IntellijIDEA.
-On sucessful run you'll see something like in the image below.
-<p align="center">
-  <img src="./vaadinImage.png" />
-<p align="center">
-    <h1 align="center">FrontEnd - Vaadin Successful buid</h1>
-</p>
-  <img src="./mysqlImage.png" />
-  <p align="center">
-    <h1 align="center">MySQL service Successful buid</h1>
-</p>
-  <img src="./mongoImage.png" />
-</p>
+- **Encryption** – round trip, passwords of any length, unique ciphertext per call, wrong key, tampered data and garbage input.
+- **Password generator** – length, all four character groups present, no repeats over 1,000 runs.
+- **PasswordManagerService** – records matched to keys by id (not by order), orphaned entries skipped, key rolled back when saving the record fails, delete removes both.
+- **Registration and login** – BCrypt hashing, taken usernames, short passwords, unknown users.
+- **REST controllers** – validation (`400`), owner scoping (`404`), requests without the internal token (`401`).
 
-<p align="center">
-    <h1 align="center">MongoDB service Successful buid</h1>
-</p>
-- Caution: Do not shut/close/stop the 'serviceRegister' as it is the Eureka Server and all the microservices will register there.
-- On successful run navigate to localhost:7000 (cross check the logs for the correct port number).
-On sucessful run you'll see something like in the image below.
-</p>
-  <img src="./landingPage.png" />
-</p>
-<p align="center">
-    <h1 align="center">Landing page</h1>
-</p>
+CI runs the same command on every push.
 
-</p>
-  <img src="./createPasswordImage.png" />
-</p>
-<p align="center">
-    <h1 align="center">Password Creation page</h1>
-</p>
-</p>
-  <img src="./ViewPasswordImage.png" />
-</p>
-<p align="center">
-    <h1 align="center">Password View page</h1>
-</p>
-
-</p>
-  <img src="./MongoDBServer.png" />
-</p>
-<p align="center">MongoDB Compass View</h1>
-</p>
-
-</p>
-  <img src="./MysqlDbImage.png" />
-</p>
-<p align="center">
-    <h1 align="center">MySQL Shell View</h1>
-</p>
-- Enjoy the flow! 💯
-
-
-
-
-
-### Any persistent Issue feel free to reach out - would love to resolve the issue
----
-
-##  Contributing
-
-Contributions are welcome! Here are several ways you can contribute:
-
-- **[Submit Pull Requests](https://github.com/payallenka/LockCrypt/blob/main/CONTRIBUTING.md)**: Review open PRs, and submit your own PRs.
-- **[Join the Discussions](https://github.com/payallenka/LockCrypt/discussions)**: Share your insights, provide feedback, or ask questions.
-- **[Report Issues](https://github.com/payallenka/LockCrypt/issues)**: Submit bugs found or log feature requests for Lockcrypt.
-
-
-1. **Fork the Repository**: Start by forking the project repository to your GitHub account.
-2. **Clone Locally**: Clone the forked repository to your local machine using a Git client.
-   ```sh
-   git clone https://github.com/payallenka/LockCrypt
-   ```
-3. **Create a New Branch**: Always work on a new branch, giving it a descriptive name.
-   ```sh
-   git checkout -b new-feature-x
-   ```
-4. **Make Your Changes**: Develop and test your changes locally.
-5. **Commit Your Changes**: Commit with a clear message describing your updates.
-   ```sh
-   git commit -m 'Implemented new feature x.'
-   ```
-6. **Push to GitHub**: Push the changes to your forked repository.
-   ```sh
-   git push origin new-feature-x
-   ```
-7. **Submit a Pull Request**: Create a PR against the original project repository. Clearly describe the changes and their motivations.
-
-Once your PR is reviewed and approved, it will be merged into the main branch.
-
-</details>
+The full stack has also been tested end to end with Docker Compose: register → log in → generate and save → view (decrypted) → delete, plus a second user seeing none of the first user's passwords, a wrong login password being rejected, and logout ending the session.
 
 ---
 
-##  License
+## Screenshots
 
-This project is protected under the [SELECT-A-LICENSE](https://choosealicense.com/licenses) License. For more details, refer to the [LICENSE](https://choosealicense.com/licenses/) file.
+<p align="center"><img src="./docs/images/landingPage.png" width="700" /></p>
+<p align="center"><em>Landing page</em></p>
+
+<p align="center"><img src="./docs/images/createPasswordImage.png" width="700" /></p>
+<p align="center"><em>Password creation page</em></p>
+
+<p align="center"><img src="./docs/images/ViewPasswordImage.png" width="700" /></p>
+<p align="center"><em>Password view page</em></p>
 
 ---
 
-##  Acknowledgments
+## Limitations and next steps
 
-- Prof. Devraju Sir (guide)
-- Prof. Laxmi ma'am (cryptography algorithms expert)
+- Keys are generated and used on the server, so `VaadinFramework` can decrypt every password. Deriving the keys from a master password the user types in (e.g. with PBKDF2/Argon2) would mean even the server could not read them.
+- Traffic between services is plain HTTP protected by a shared token; mTLS or OAuth2 client credentials would be the production-grade option.
+- An API gateway (Spring Cloud Gateway) and centralised configuration would be the next steps on the microservices side.
 
 ---
+
+## Contributing
+
+Contributions are welcome! Open an [issue](https://github.com/payallenka/LockCrypt/issues) or a pull request.
+
+1. Fork the repository and create a branch: `git checkout -b new-feature-x`
+2. Make your changes and run `./mvnw verify`
+3. Commit with a clear message and open a pull request against `main`
